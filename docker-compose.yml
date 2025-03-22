@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  freqtrade-webhook:
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - EMAIL_SENDER=${EMAIL_SENDER}
+      - EMAIL_RECIPIENT=${EMAIL_RECIPIENT}
+      - API_KEY=${API_KEY}
+      - PORT=5001
+    restart: unless-stopped
+    # For production, consider adding health checks
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 10s
