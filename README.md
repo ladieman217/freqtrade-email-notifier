@@ -1,4 +1,4 @@
-# Freqtrade Webhook Email Notifier
+# Freqtrade Email Notifier
 
 A Python service that receives Freqtrade webhooks and sends email notifications using AWS SES.
 
@@ -25,8 +25,8 @@ The easiest way to run the service is using Docker:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/freqtrade-webhook-email.git
-cd freqtrade-webhook-email
+git clone https://github.com/yourusername/freqtrade-email-notifier.git
+cd freqtrade-email-notifier
 
 # Create .env file
 cp .env.example .env

@@ -42,7 +42,7 @@ def test_index():
     """Test the index route"""
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"status": "online", "service": "Freqtrade Webhook Email Notifier"}
+    assert response.json() == {"status": "online", "service": "Freqtrade Email Notifier"}
 
 @patch('app.ses_client')
 def test_webhook_valid_data_with_auth(mock_ses):
