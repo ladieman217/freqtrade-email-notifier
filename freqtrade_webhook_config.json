@@ -1,0 +1,146 @@
+{
+    "webhook": {
+        "enabled": true,
+        "url": "http://your-server-address:5001/webhook",
+        "format": "json",
+        "timeout": 10,
+        "retries": 3,
+        "retry_delay": 0.2,
+        
+        "entry": {
+            "type": "entry",
+            "trade_id": "{trade_id}",
+            "exchange": "{exchange}",
+            "pair": "{pair}",
+            "direction": "{direction}",
+            "leverage": "{leverage}",
+            "open_rate": "{open_rate}",
+            "amount": "{amount}",
+            "open_date": "{open_date}",
+            "stake_amount": "{stake_amount}",
+            "stake_currency": "{stake_currency}",
+            "base_currency": "{base_currency}",
+            "quote_currency": "{quote_currency}",
+            "order_type": "{order_type}",
+            "current_rate": "{current_rate}",
+            "enter_tag": "{enter_tag}"
+        },
+        
+        "entry_cancel": {
+            "type": "entry_cancel",
+            "trade_id": "{trade_id}",
+            "exchange": "{exchange}",
+            "pair": "{pair}",
+            "direction": "{direction}",
+            "leverage": "{leverage}",
+            "limit": "{limit}",
+            "amount": "{amount}",
+            "open_date": "{open_date}",
+            "stake_amount": "{stake_amount}",
+            "stake_currency": "{stake_currency}",
+            "base_currency": "{base_currency}",
+            "quote_currency": "{quote_currency}",
+            "order_type": "{order_type}",
+            "current_rate": "{current_rate}",
+            "enter_tag": "{enter_tag}"
+        },
+        
+        "entry_fill": {
+            "type": "entry_fill",
+            "trade_id": "{trade_id}",
+            "exchange": "{exchange}",
+            "pair": "{pair}",
+            "direction": "{direction}",
+            "leverage": "{leverage}",
+            "open_rate": "{open_rate}",
+            "amount": "{amount}",
+            "open_date": "{open_date}",
+            "stake_amount": "{stake_amount}",
+            "stake_currency": "{stake_currency}",
+            "base_currency": "{base_currency}",
+            "quote_currency": "{quote_currency}",
+            "order_type": "{order_type}",
+            "current_rate": "{current_rate}",
+            "enter_tag": "{enter_tag}"
+        },
+        
+        "exit": {
+            "type": "exit",
+            "trade_id": "{trade_id}",
+            "exchange": "{exchange}",
+            "pair": "{pair}",
+            "direction": "{direction}",
+            "leverage": "{leverage}",
+            "gain": "{gain}",
+            "limit": "{limit}",
+            "amount": "{amount}",
+            "open_rate": "{open_rate}",
+            "profit_amount": "{profit_amount}",
+            "profit_ratio": "{profit_ratio}",
+            "stake_currency": "{stake_currency}",
+            "base_currency": "{base_currency}",
+            "quote_currency": "{quote_currency}",
+            "exit_reason": "{exit_reason}",
+            "order_type": "{order_type}",
+            "open_date": "{open_date}",
+            "close_date": "{close_date}"
+        },
+        
+        "exit_fill": {
+            "type": "exit_fill",
+            "trade_id": "{trade_id}",
+            "exchange": "{exchange}",
+            "pair": "{pair}",
+            "direction": "{direction}",
+            "leverage": "{leverage}",
+            "gain": "{gain}",
+            "close_rate": "{close_rate}",
+            "amount": "{amount}",
+            "open_rate": "{open_rate}",
+            "current_rate": "{current_rate}",
+            "profit_amount": "{profit_amount}",
+            "profit_ratio": "{profit_ratio}",
+            "stake_currency": "{stake_currency}",
+            "base_currency": "{base_currency}",
+            "quote_currency": "{quote_currency}",
+            "exit_reason": "{exit_reason}",
+            "order_type": "{order_type}",
+            "open_date": "{open_date}",
+            "close_date": "{close_date}"
+        },
+        
+        "exit_cancel": {
+            "type": "exit_cancel",
+            "trade_id": "{trade_id}",
+            "exchange": "{exchange}",
+            "pair": "{pair}",
+            "direction": "{direction}",
+            "leverage": "{leverage}",
+            "gain": "{gain}",
+            "limit": "{limit}",
+            "amount": "{amount}",
+            "open_rate": "{open_rate}",
+            "current_rate": "{current_rate}",
+            "profit_amount": "{profit_amount}",
+            "profit_ratio": "{profit_ratio}",
+            "stake_currency": "{stake_currency}",
+            "base_currency": "{base_currency}",
+            "quote_currency": "{quote_currency}",
+            "exit_reason": "{exit_reason}",
+            "order_type": "{order_type}",
+            "open_date": "{open_date}",
+            "close_date": "{close_date}"
+        },
+        
+        "status": {
+            "type": "status",
+            "status": "{status}"
+        },
+        
+        "allow_custom_messages": true,
+        "strategy_msg": {
+            "type": "strategy_msg",
+            "msg": "{msg}"
+        }
+    }
+} 

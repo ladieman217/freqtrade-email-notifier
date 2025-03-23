@@ -66,85 +66,313 @@ async def verify_api_key(token: Optional[str] = None):
 # Common webhook processing function
 async def process_webhook_data(webhook_data: dict):
     """
-    Process webhook data, create and send email notification
+    Process webhook data, create and send email notification based on Freqtrade webhook types
     """
     # Validate input data
     if not isinstance(webhook_data, dict):
         raise HTTPException(status_code=400, detail="Invalid webhook data format")
     
-    # Ensure 'type' field exists
-    if 'type' not in webhook_data:
+    # Determine webhook type
+    webhook_type = webhook_data.get('type')
+    if not webhook_type:
         raise HTTPException(status_code=400, detail="Missing 'type' field in webhook data")
     
     # Log the received webhook
-    logger.info(f"Received webhook: {json.dumps(webhook_data, indent=2)}")
+    logger.info(f"Received webhook type: {webhook_type}")
+    logger.debug(f"Webhook data: {json.dumps(webhook_data, indent=2)}")
     
-    # Prepare email content
-    subject = f"Freqtrade Alert - {webhook_data.get('type', 'Unknown')}"
+    # Prepare subject based on webhook type
+    subject = f"Freqtrade Alert - {webhook_type}"
     
-    # Format the email body
-    body_text = "Freqtrade Trading Bot Alert\n\n"
+    # Common header for all email types
+    body_text = f"Freqtrade Trading Bot Alert\n\n"
     body_text += f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-    body_text += f"Type: {webhook_data.get('type', 'Unknown')}\n\n"
+    body_text += f"Type: {webhook_type}\n\n"
     
-    # Add trade details if available
-    if 'exchange' in webhook_data:
-        body_text += f"Exchange: {webhook_data.get('exchange')}\n"
-    if 'pair' in webhook_data:
-        body_text += f"Trading Pair: {webhook_data.get('pair')}\n"
-    if 'order_type' in webhook_data:
-        body_text += f"Order Type: {webhook_data.get('order_type')}\n"
-    if 'side' in webhook_data:
-        body_text += f"Side: {webhook_data.get('side')}\n"
-    if 'price' in webhook_data:
-        body_text += f"Price: {webhook_data.get('price')}\n"
-    if 'amount' in webhook_data:
-        body_text += f"Amount: {webhook_data.get('amount')}\n"
-    if 'trade_id' in webhook_data:
-        body_text += f"Trade ID: {webhook_data.get('trade_id')}\n"
-    
-    # Add all other data from webhook
-    body_text += "\nComplete Webhook Data:\n"
-    body_text += json.dumps(webhook_data, indent=2)
-    
-    # Create HTML version
     body_html = f"""
     <html>
-    <head></head>
+    <head>
+      <style>
+        body {{ font-family: Arial, sans-serif; }}
+        .trade-info {{ margin-bottom: 20px; }}
+        .data-section {{ margin-top: 30px; }}
+        pre {{ background-color: #f5f5f5; padding: 10px; border-radius: 5px; }}
+      </style>
+    </head>
     <body>
       <h1>Freqtrade Trading Bot Alert</h1>
       <p>Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-      <p>Type: {webhook_data.get('type', 'Unknown')}</p>
+      <p>Type: <strong>{webhook_type}</strong></p>
       
-      <h2>Details</h2>
-      <ul>
+      <div class="trade-info">
     """
     
-    # Add trade details if available
-    if 'exchange' in webhook_data:
-        body_html += f"<li>Exchange: {webhook_data.get('exchange')}</li>\n"
-    if 'pair' in webhook_data:
-        body_html += f"<li>Trading Pair: {webhook_data.get('pair')}</li>\n"
-    if 'order_type' in webhook_data:
-        body_html += f"<li>Order Type: {webhook_data.get('order_type')}</li>\n"
-    if 'side' in webhook_data:
-        body_html += f"<li>Side: {webhook_data.get('side')}</li>\n"
-    if 'price' in webhook_data:
-        body_html += f"<li>Price: {webhook_data.get('price')}</li>\n"
-    if 'amount' in webhook_data:
-        body_html += f"<li>Amount: {webhook_data.get('amount')}</li>\n"
-    if 'trade_id' in webhook_data:
-        body_html += f"<li>Trade ID: {webhook_data.get('trade_id')}</li>\n"
+    # Process based on webhook type
+    if webhook_type == 'entry':
+        # Entry - bot executes a long/short
+        body_text += "📈 ENTERING TRADE\n"
+        body_text += f"Pair: {webhook_data.get('pair', 'Unknown')}\n"
+        body_text += f"Direction: {webhook_data.get('direction', 'Unknown')}\n"
+        body_text += f"Order Type: {webhook_data.get('order_type', 'Unknown')}\n"
+        body_text += f"Price: {webhook_data.get('open_rate', 'Unknown')}\n"
+        body_text += f"Amount: {webhook_data.get('amount', 'Unknown')}\n"
+        body_text += f"Stake Amount: {webhook_data.get('stake_amount', 'Unknown')} {webhook_data.get('stake_currency', '')}\n"
+        body_text += f"Enter Tag: {webhook_data.get('enter_tag', 'Unknown')}\n"
+        
+        body_html += f"""
+        <h2>📈 ENTERING TRADE</h2>
+        <ul>
+          <li>Pair: <strong>{webhook_data.get('pair', 'Unknown')}</strong></li>
+          <li>Direction: {webhook_data.get('direction', 'Unknown')}</li>
+          <li>Order Type: {webhook_data.get('order_type', 'Unknown')}</li>
+          <li>Price: {webhook_data.get('open_rate', 'Unknown')}</li>
+          <li>Amount: {webhook_data.get('amount', 'Unknown')}</li>
+          <li>Stake Amount: {webhook_data.get('stake_amount', 'Unknown')} {webhook_data.get('stake_currency', '')}</li>
+          <li>Enter Tag: {webhook_data.get('enter_tag', 'Unknown')}</li>
+        </ul>
+        """
+        
+    elif webhook_type == 'entry_cancel':
+        # Entry cancel - bot cancels a long/short order
+        body_text += "🚫 ENTRY ORDER CANCELLED\n"
+        body_text += f"Pair: {webhook_data.get('pair', 'Unknown')}\n"
+        body_text += f"Direction: {webhook_data.get('direction', 'Unknown')}\n"
+        body_text += f"Order Type: {webhook_data.get('order_type', 'Unknown')}\n"
+        body_text += f"Price: {webhook_data.get('limit', 'Unknown')}\n"
+        body_text += f"Amount: {webhook_data.get('amount', 'Unknown')}\n"
+        body_text += f"Stake Amount: {webhook_data.get('stake_amount', 'Unknown')} {webhook_data.get('stake_currency', '')}\n"
+        
+        body_html += f"""
+        <h2>🚫 ENTRY ORDER CANCELLED</h2>
+        <ul>
+          <li>Pair: <strong>{webhook_data.get('pair', 'Unknown')}</strong></li>
+          <li>Direction: {webhook_data.get('direction', 'Unknown')}</li>
+          <li>Order Type: {webhook_data.get('order_type', 'Unknown')}</li>
+          <li>Price: {webhook_data.get('limit', 'Unknown')}</li>
+          <li>Amount: {webhook_data.get('amount', 'Unknown')}</li>
+          <li>Stake Amount: {webhook_data.get('stake_amount', 'Unknown')} {webhook_data.get('stake_currency', '')}</li>
+        </ul>
+        """
+        
+    elif webhook_type == 'entry_fill':
+        # Entry fill - bot filled a long/short order
+        body_text += "✅ ENTRY ORDER FILLED\n"
+        body_text += f"Pair: {webhook_data.get('pair', 'Unknown')}\n"
+        body_text += f"Direction: {webhook_data.get('direction', 'Unknown')}\n"
+        body_text += f"Order Type: {webhook_data.get('order_type', 'Unknown')}\n"
+        body_text += f"Fill Price: {webhook_data.get('open_rate', 'Unknown')}\n"
+        body_text += f"Amount: {webhook_data.get('amount', 'Unknown')}\n"
+        body_text += f"Stake Amount: {webhook_data.get('stake_amount', 'Unknown')} {webhook_data.get('stake_currency', '')}\n"
+        body_text += f"Enter Tag: {webhook_data.get('enter_tag', 'Unknown')}\n"
+        
+        body_html += f"""
+        <h2>✅ ENTRY ORDER FILLED</h2>
+        <ul>
+          <li>Pair: <strong>{webhook_data.get('pair', 'Unknown')}</strong></li>
+          <li>Direction: {webhook_data.get('direction', 'Unknown')}</li>
+          <li>Order Type: {webhook_data.get('order_type', 'Unknown')}</li>
+          <li>Fill Price: {webhook_data.get('open_rate', 'Unknown')}</li>
+          <li>Amount: {webhook_data.get('amount', 'Unknown')}</li>
+          <li>Stake Amount: {webhook_data.get('stake_amount', 'Unknown')} {webhook_data.get('stake_currency', '')}</li>
+          <li>Enter Tag: {webhook_data.get('enter_tag', 'Unknown')}</li>
+        </ul>
+        """
+        
+    elif webhook_type == 'exit':
+        # Exit - bot exits a trade
+        body_text += "📉 EXITING TRADE\n"
+        body_text += f"Pair: {webhook_data.get('pair', 'Unknown')}\n"
+        body_text += f"Direction: {webhook_data.get('direction', 'Unknown')}\n"
+        body_text += f"Order Type: {webhook_data.get('order_type', 'Unknown')}\n"
+        body_text += f"Price: {webhook_data.get('limit', 'Unknown')}\n"
+        body_text += f"Amount: {webhook_data.get('amount', 'Unknown')}\n"
+        body_text += f"Profit: {webhook_data.get('profit_amount', 'Unknown')} {webhook_data.get('stake_currency', '')} ({webhook_data.get('profit_ratio', 'Unknown')})\n"
+        body_text += f"Exit Reason: {webhook_data.get('exit_reason', 'Unknown')}\n"
+        
+        # Format profit ratio as percentage if it's a number
+        profit_ratio = webhook_data.get('profit_ratio', 0)
+        try:
+            profit_ratio = float(profit_ratio) * 100
+            profit_ratio_display = f"{profit_ratio:.2f}%"
+        except (ValueError, TypeError):
+            profit_ratio_display = str(profit_ratio)
+        
+        body_html += f"""
+        <h2>📉 EXITING TRADE</h2>
+        <ul>
+          <li>Pair: <strong>{webhook_data.get('pair', 'Unknown')}</strong></li>
+          <li>Direction: {webhook_data.get('direction', 'Unknown')}</li>
+          <li>Order Type: {webhook_data.get('order_type', 'Unknown')}</li>
+          <li>Price: {webhook_data.get('limit', 'Unknown')}</li>
+          <li>Amount: {webhook_data.get('amount', 'Unknown')}</li>
+          <li>Profit: {webhook_data.get('profit_amount', 'Unknown')} {webhook_data.get('stake_currency', '')} ({profit_ratio_display})</li>
+          <li>Exit Reason: {webhook_data.get('exit_reason', 'Unknown')}</li>
+        </ul>
+        """
+        
+    elif webhook_type == 'exit_fill':
+        # Exit fill - bot fills an exit order
+        body_text += "✅ EXIT ORDER FILLED\n"
+        body_text += f"Pair: {webhook_data.get('pair', 'Unknown')}\n"
+        body_text += f"Direction: {webhook_data.get('direction', 'Unknown')}\n"
+        body_text += f"Order Type: {webhook_data.get('order_type', 'Unknown')}\n"
+        body_text += f"Fill Price: {webhook_data.get('close_rate', 'Unknown')}\n"
+        body_text += f"Amount: {webhook_data.get('amount', 'Unknown')}\n"
+        body_text += f"Profit: {webhook_data.get('profit_amount', 'Unknown')} {webhook_data.get('stake_currency', '')} ({webhook_data.get('profit_ratio', 'Unknown')})\n"
+        body_text += f"Exit Reason: {webhook_data.get('exit_reason', 'Unknown')}\n"
+        body_text += f"Trade Duration: {webhook_data.get('open_date', 'Unknown')} to {webhook_data.get('close_date', 'Unknown')}\n"
+        
+        # Format profit ratio as percentage if it's a number
+        profit_ratio = webhook_data.get('profit_ratio', 0)
+        try:
+            profit_ratio = float(profit_ratio) * 100
+            profit_ratio_display = f"{profit_ratio:.2f}%"
+            profit_color = "green" if profit_ratio >= 0 else "red"
+        except (ValueError, TypeError):
+            profit_ratio_display = str(profit_ratio)
+            profit_color = "black"
+        
+        body_html += f"""
+        <h2>✅ EXIT ORDER FILLED</h2>
+        <ul>
+          <li>Pair: <strong>{webhook_data.get('pair', 'Unknown')}</strong></li>
+          <li>Direction: {webhook_data.get('direction', 'Unknown')}</li>
+          <li>Order Type: {webhook_data.get('order_type', 'Unknown')}</li>
+          <li>Fill Price: {webhook_data.get('close_rate', 'Unknown')}</li>
+          <li>Amount: {webhook_data.get('amount', 'Unknown')}</li>
+          <li>Profit: <span style="color: {profit_color}">{webhook_data.get('profit_amount', 'Unknown')} {webhook_data.get('stake_currency', '')} ({profit_ratio_display})</span></li>
+          <li>Exit Reason: {webhook_data.get('exit_reason', 'Unknown')}</li>
+          <li>Trade Duration: {webhook_data.get('open_date', 'Unknown')} to {webhook_data.get('close_date', 'Unknown')}</li>
+        </ul>
+        """
+        
+    elif webhook_type == 'exit_cancel':
+        # Exit cancel - bot cancels an exit order
+        body_text += "🚫 EXIT ORDER CANCELLED\n"
+        body_text += f"Pair: {webhook_data.get('pair', 'Unknown')}\n"
+        body_text += f"Direction: {webhook_data.get('direction', 'Unknown')}\n"
+        body_text += f"Order Type: {webhook_data.get('order_type', 'Unknown')}\n"
+        body_text += f"Price: {webhook_data.get('limit', 'Unknown')}\n"
+        body_text += f"Amount: {webhook_data.get('amount', 'Unknown')}\n"
+        body_text += f"Profit: {webhook_data.get('profit_amount', 'Unknown')} {webhook_data.get('stake_currency', '')} ({webhook_data.get('profit_ratio', 'Unknown')})\n"
+        
+        body_html += f"""
+        <h2>🚫 EXIT ORDER CANCELLED</h2>
+        <ul>
+          <li>Pair: <strong>{webhook_data.get('pair', 'Unknown')}</strong></li>
+          <li>Direction: {webhook_data.get('direction', 'Unknown')}</li>
+          <li>Order Type: {webhook_data.get('order_type', 'Unknown')}</li>
+          <li>Price: {webhook_data.get('limit', 'Unknown')}</li>
+          <li>Amount: {webhook_data.get('amount', 'Unknown')}</li>
+          <li>Profit: {webhook_data.get('profit_amount', 'Unknown')} {webhook_data.get('stake_currency', '')} ({webhook_data.get('profit_ratio', 'Unknown')})</li>
+        </ul>
+        """
+    
+    elif webhook_type == 'strategy_msg':
+        # Handle custom message from strategy
+        msg = webhook_data.get('msg', 'No message content')
+        body_text += "📊 STRATEGY MESSAGE\n"
+        
+        # Check if message is a dictionary or JSON string
+        if isinstance(msg, dict):
+            for key, value in msg.items():
+                body_text += f"{key}: {value}\n"
+            
+            body_html += f"""
+            <h2>📊 STRATEGY MESSAGE</h2>
+            <ul>
+            """
+            
+            for key, value in msg.items():
+                body_html += f"<li>{key}: <strong>{value}</strong></li>\n"
+            
+            body_html += "</ul>"
+        else:
+            # Try to parse as JSON if it's a string
+            try:
+                if isinstance(msg, str) and (msg.startswith('{') or msg.startswith('[')):
+                    msg_data = json.loads(msg)
+                    
+                    # If it's a dictionary
+                    if isinstance(msg_data, dict):
+                        for key, value in msg_data.items():
+                            body_text += f"{key}: {value}\n"
+                        
+                        body_html += f"""
+                        <h2>📊 STRATEGY MESSAGE</h2>
+                        <ul>
+                        """
+                        
+                        for key, value in msg_data.items():
+                            body_html += f"<li>{key}: <strong>{value}</strong></li>\n"
+                        
+                        body_html += "</ul>"
+                    else:
+                        # It's probably a list or some other JSON structure
+                        body_text += f"Message: {msg}\n"
+                        body_html += f"""
+                        <h2>📊 STRATEGY MESSAGE</h2>
+                        <pre>{json.dumps(msg_data, indent=2)}</pre>
+                        """
+                else:
+                    # Plain text message
+                    body_text += f"Message: {msg}\n"
+                    body_html += f"""
+                    <h2>📊 STRATEGY MESSAGE</h2>
+                    <p>{msg}</p>
+                    """
+            except json.JSONDecodeError:
+                # Handle plain text message
+                body_text += f"Message: {msg}\n"
+                body_html += f"""
+                <h2>📊 STRATEGY MESSAGE</h2>
+                <p>{msg}</p>
+                """
+    
+    elif webhook_type == 'status':
+        # Status - regular status messages
+        body_text += f"STATUS UPDATE: {webhook_data.get('status', 'Unknown')}\n"
+        
+        body_html += f"""
+        <h2>STATUS UPDATE</h2>
+        <p>Status: <strong>{webhook_data.get('status', 'Unknown')}</strong></p>
+        """
+    
+    else:
+        # Unknown webhook type - generic processing
+        body_text += f"RECEIVED WEBHOOK: {webhook_type}\n"
+        
+        # Add all available fields
+        for key, value in webhook_data.items():
+            if key != 'type':
+                body_text += f"{key}: {value}\n"
+        
+        body_html += f"""
+        <h2>RECEIVED WEBHOOK: {webhook_type}</h2>
+        <ul>
+        """
+        
+        for key, value in webhook_data.items():
+            if key != 'type':
+                body_html += f"<li>{key}: {value}</li>\n"
+        
+        body_html += "</ul>"
+    
+    # Add complete webhook data to all message types
+    body_text += "\nComplete Webhook Data:\n"
+    body_text += json.dumps(webhook_data, indent=2)
     
     body_html += """
-      </ul>
+      </div>
       
-      <h2>Complete Webhook Data</h2>
-      <pre>
+      <div class="data-section">
+        <h3>Complete Webhook Data</h3>
+        <pre>
     """
     body_html += json.dumps(webhook_data, indent=2)
     body_html += """
-      </pre>
+        </pre>
+      </div>
     </body>
     </html>
     """
@@ -176,15 +404,15 @@ async def process_webhook_data(webhook_data: dict):
             }
         )
         
-        logger.info(f"Email sent! Message ID: {response['MessageId']}")
+        logger.info(f"Email sent for webhook type {webhook_type}! Message ID: {response['MessageId']}")
         
         return {
             'status': 'success',
-            'message': 'Webhook received and email sent',
+            'message': f'Webhook received and email sent for {webhook_type}',
             'messageId': response['MessageId']
         }
     except Exception as e:
-        logger.error(f"Failed to send email: {str(e)}", exc_info=True)
+        logger.error(f"Failed to send email for webhook type {webhook_type}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
 @app.post("/webhook")

@@ -74,6 +74,44 @@ WEBHOOKS = {
         "type": "status",
         "status": "running",
         "timestamp": int(time.time())
+    },
+    
+    # Strategy message with dictionary
+    'strategy_msg_dict': {
+        "type": "strategy_msg",
+        "msg": {
+            "market": "bullish",
+            "indicator": "RSI",
+            "value": 28,
+            "action": "considering buy"
+        }
+    },
+    
+    # Strategy message with plain string
+    'strategy_msg_string': {
+        "type": "strategy_msg",
+        "msg": "Market is trending up, RSI at 28, looking to buy"
+    },
+    
+    # Strategy message with JSON string
+    'strategy_msg_json': {
+        "type": "strategy_msg",
+        "msg": json.dumps({
+            "market": "bearish",
+            "indicator": "MACD",
+            "value": -0.002,
+            "action": "considering sell"
+        })
+    },
+    
+    # Strategy message with list
+    'strategy_msg_list': {
+        "type": "strategy_msg",
+        "msg": [
+            {"coin": "BTC", "signal": "buy", "strength": "strong"},
+            {"coin": "ETH", "signal": "sell", "strength": "medium"},
+            {"coin": "ADA", "signal": "neutral", "strength": "weak"}
+        ]
     }
 }
 
@@ -154,4 +192,4 @@ def main():
             print(f"Result: {status} - {response}")
 
 if __name__ == "__main__":
-    main() 
+    main()

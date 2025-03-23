@@ -14,6 +14,7 @@ A Python service that receives Freqtrade webhooks and sends email notifications 
 - Automatic API documentation (Swagger UI)
 - API key authentication for enhanced security
 - Containerized with Docker for easy deployment
+- Custom strategy messages support for advanced notifications
 
 ## Requirements
 
@@ -142,6 +143,80 @@ FastAPI automatically generates interactive API documentation. After starting th
 - Swagger UI: http://localhost:5001/docs
 - ReDoc: http://localhost:5001/redoc
 
+## Custom Strategy Messages
+
+The service supports receiving custom messages from your trading strategy, allowing you to send notifications about market conditions, indicator values, or any other information from your strategy code.
+
+### Example Use Cases
+
+- Send alerts when key technical indicators cross thresholds
+- Notify about changing market conditions
+- Send periodic performance reports
+- Alert about portfolio allocation changes
+- Send debugging information during strategy development
+
+### Configuration
+
+In your Freqtrade configuration, enable custom messages:
+
+```json
+"webhook": {
+    "enabled": true,
+    "url": "http://your-server-address:5001/webhook",
+    "format": "json",
+    "allow_custom_messages": true,
+    "strategy_msg": {
+        "type": "strategy_msg",
+        "msg": "{msg}"
+    }
+}
+```
+
+### Sending Custom Messages from Strategy
+
+Custom messages can be sent from your strategy using the `self.dp.send_msg()` method. Your message can be:
+
+1. **Plain text string**:
+```python
+self.dp.send_msg({'type': 'strategy_msg', 'msg': 'BTC trend has changed to bullish'})
+```
+
+2. **Structured data (dictionary)**:
+```python
+self.dp.send_msg({
+    'type': 'strategy_msg',
+    'msg': {
+        'pair': 'BTC/USDT',
+        'indicator': 'RSI',
+        'value': 25.3,
+        'action': 'Buy signal generated',
+        'current_price': 38750.45
+    }
+})
+```
+
+3. **Lists or other JSON-serializable data**:
+```python
+self.dp.send_msg({
+    'type': 'strategy_msg',
+    'msg': [
+        {'pair': 'BTC/USDT', 'trend': 'bullish', 'signal': 'buy'},
+        {'pair': 'ETH/USDT', 'trend': 'bearish', 'signal': 'sell'}
+    ]
+})
+```
+
+### Integration Points
+
+You can send custom messages from any of these strategy methods:
+
+- `populate_indicators()` - for technical indicator alerts
+- `populate_buy_trend()` - for buy signal notifications
+- `populate_sell_trend()` - for sell signal notifications
+- `bot_loop_start()` - for periodic status updates
+
+For a complete example configuration and integration code, refer to the `freqtrade_webhook_config.json` file included in this repository.
+
 ## Freqtrade Configuration
 
 In your Freqtrade configuration file, add the webhook URL:
@@ -217,6 +292,10 @@ python test_webhook.py --verbose
 
 # Test specific webhook type
 python test_webhook.py --type entry --verbose
+
+# Test custom message types
+python test_webhook.py --type strategy_msg_dict --verbose
+python test_webhook.py --type strategy_msg_string --verbose
 ```
 
 ## Contributing
@@ -231,4 +310,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

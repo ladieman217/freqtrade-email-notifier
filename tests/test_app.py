@@ -36,6 +36,35 @@ invalid_webhook = {
     # Missing "type" field
 }
 
+# Custom strategy messages for testing
+strategy_msg_dict = {
+    "type": "strategy_msg",
+    "msg": {
+        "market": "bullish",
+        "indicator": "RSI",
+        "value": 28,
+        "action": "considering buy"
+    }
+}
+
+strategy_msg_string = {
+    "type": "strategy_msg",
+    "msg": "Market is trending up, RSI at 28, looking to buy"
+}
+
+strategy_msg_json_string = {
+    "type": "strategy_msg",
+    "msg": '{"market": "bullish", "indicator": "RSI", "value": 28, "action": "considering buy"}'
+}
+
+strategy_msg_list = {
+    "type": "strategy_msg",
+    "msg": [
+        {"coin": "BTC", "signal": "buy"},
+        {"coin": "ETH", "signal": "sell"}
+    ]
+}
+
 # Tests
 
 def test_index():
@@ -110,6 +139,121 @@ def test_webhook_service_error(mock_ses):
     # Should be internal server error
     assert response.status_code == 500
     assert "Test error" in response.json()["detail"]
+
+@patch('app.ses_client')
+def test_strategy_msg_dict(mock_ses):
+    """Test webhook with strategy_msg containing a dictionary"""
+    # Mock the SES client response
+    mock_ses.send_email.return_value = {"MessageId": "test-message-id"}
+    
+    # Send a strategy message with dictionary content
+    response = client.post(
+        "/webhook",
+        json=strategy_msg_dict,
+        headers={"X-API-Key": "test_api_key"}
+    )
+    
+    # Check response
+    assert response.status_code == 200
+    assert response.json()["status"] == "success"
+    assert response.json()["messageId"] == "test-message-id"
+    
+    # Verify SES was called with correct arguments
+    mock_ses.send_email.assert_called_once()
+    call_args = mock_ses.send_email.call_args[1]
+    
+    # Check that subject contains "STRATEGY MESSAGE"
+    assert "📊 STRATEGY MESSAGE" in call_args["Message"]["Subject"]["Data"]
+    
+    # Check content contains dictionary keys
+    html_content = call_args["Message"]["Body"]["Html"]["Data"]
+    assert "market" in html_content
+    assert "bullish" in html_content
+    assert "RSI" in html_content
+    assert "28" in html_content
+
+@patch('app.ses_client')
+def test_strategy_msg_string(mock_ses):
+    """Test webhook with strategy_msg containing a plain string"""
+    # Mock the SES client response
+    mock_ses.send_email.return_value = {"MessageId": "test-message-id"}
+    
+    # Send a strategy message with string content
+    response = client.post(
+        "/webhook",
+        json=strategy_msg_string,
+        headers={"X-API-Key": "test_api_key"}
+    )
+    
+    # Check response
+    assert response.status_code == 200
+    assert response.json()["status"] == "success"
+    assert response.json()["messageId"] == "test-message-id"
+    
+    # Verify SES was called with correct arguments
+    mock_ses.send_email.assert_called_once()
+    call_args = mock_ses.send_email.call_args[1]
+    
+    # Check content contains the string message
+    html_content = call_args["Message"]["Body"]["Html"]["Data"]
+    assert "Market is trending up" in html_content
+    assert "RSI at 28" in html_content
+
+@patch('app.ses_client')
+def test_strategy_msg_json_string(mock_ses):
+    """Test webhook with strategy_msg containing a JSON string"""
+    # Mock the SES client response
+    mock_ses.send_email.return_value = {"MessageId": "test-message-id"}
+    
+    # Send a strategy message with JSON string content
+    response = client.post(
+        "/webhook",
+        json=strategy_msg_json_string,
+        headers={"X-API-Key": "test_api_key"}
+    )
+    
+    # Check response
+    assert response.status_code == 200
+    assert response.json()["status"] == "success"
+    assert response.json()["messageId"] == "test-message-id"
+    
+    # Verify SES was called with correct arguments
+    mock_ses.send_email.assert_called_once()
+    call_args = mock_ses.send_email.call_args[1]
+    
+    # Check that content contains parsed JSON values
+    html_content = call_args["Message"]["Body"]["Html"]["Data"]
+    assert "market" in html_content
+    assert "bullish" in html_content
+    assert "RSI" in html_content
+
+@patch('app.ses_client')
+def test_strategy_msg_list(mock_ses):
+    """Test webhook with strategy_msg containing a list"""
+    # Mock the SES client response
+    mock_ses.send_email.return_value = {"MessageId": "test-message-id"}
+    
+    # Send a strategy message with list content
+    response = client.post(
+        "/webhook",
+        json=strategy_msg_list,
+        headers={"X-API-Key": "test_api_key"}
+    )
+    
+    # Check response
+    assert response.status_code == 200
+    assert response.json()["status"] == "success"
+    assert response.json()["messageId"] == "test-message-id"
+    
+    # Verify SES was called with correct arguments
+    mock_ses.send_email.assert_called_once()
+    call_args = mock_ses.send_email.call_args[1]
+    
+    # Check that content is formatted with <pre> tags for list
+    html_content = call_args["Message"]["Body"]["Html"]["Data"]
+    assert "<pre>" in html_content
+    assert "BTC" in html_content
+    assert "ETH" in html_content
 
 # Run the tests when file is executed directly
 if __name__ == "__main__":
