@@ -130,7 +130,7 @@ python app.py
 For production deployment, you can use:
 
 ```
-uvicorn app:app --host 0.0.0.0 --port 5001
+uvicorn app:app --host 127.0.0.1 --port 5001
 ```
 
 ## API Documentation

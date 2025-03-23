@@ -26,4 +26,4 @@ ENV API_KEY=
 ENV PORT=5001
 
 # Run the application
-CMD uvicorn app:app --host 0.0.0.0 --port ${PORT}
+CMD uvicorn app:app --host 127.0.0.1 --port ${PORT}
