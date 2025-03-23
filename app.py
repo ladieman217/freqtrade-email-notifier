@@ -224,6 +224,68 @@ async def webhook_path_auth(path_key: str, request: Request):
         logger.error(f"Error processing webhook: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/webhook/log-only")
+async def webhook_log_only(request: Request, token: Optional[str] = None, authorized: bool = Depends(verify_api_key)):
+    """
+    Webhook endpoint that only logs the data without sending emails or other processing.
+    Useful for debugging or when you only want to record trading signals.
+    """
+    try:
+        # Get the webhook data
+        webhook_data = await request.json()
+        
+        # Validate input data
+        if not isinstance(webhook_data, dict):
+            raise HTTPException(status_code=400, detail="Invalid webhook data format")
+        
+        # Log the received webhook with special tag for easy filtering
+        logger.info(f"LOG_ONLY_WEBHOOK: {json.dumps(webhook_data, indent=2)}")
+        
+        # Return success response
+        return {
+            'status': 'success',
+            'message': 'Webhook received and logged (no email sent)',
+            'timestamp': datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error processing log-only webhook: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Add a path-based version of the log-only endpoint
+@app.post("/webhook/log-only/{path_key}")
+async def webhook_log_only_path_auth(path_key: str, request: Request):
+    """
+    Path-based authentication version of the log-only webhook endpoint
+    """
+    # Verify the path key
+    if not API_KEY or path_key != API_KEY:
+        logger.warning(f"Invalid API key attempt with path key: {path_key}")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API Key in path",
+        )
+    
+    try:
+        # Get the webhook data
+        webhook_data = await request.json()
+        
+        # Validate input data
+        if not isinstance(webhook_data, dict):
+            raise HTTPException(status_code=400, detail="Invalid webhook data format")
+        
+        # Log the received webhook with special tag for easy filtering
+        logger.info(f"LOG_ONLY_WEBHOOK: {json.dumps(webhook_data, indent=2)}")
+        
+        # Return success response
+        return {
+            'status': 'success',
+            'message': 'Webhook received and logged (no email sent)',
+            'timestamp': datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error processing log-only webhook: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Add an index route for easy health check
 @app.get("/")
 async def index():
