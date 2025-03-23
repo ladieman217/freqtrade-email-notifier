@@ -2,6 +2,8 @@
 
 A Python service that receives Freqtrade webhooks and sends email notifications using AWS SES.
 
+[中文文档](README_zh.md)
+
 ## Features
 
 - Receives webhooks from Freqtrade trading bot
