@@ -429,29 +429,7 @@ async def webhook(request: Request, token: Optional[str] = None, authorized: boo
         logger.error(f"Error processing webhook: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Add a path-based endpoint for authentication
-@app.post("/webhook/{path_key}")
-async def webhook_path_auth(path_key: str, request: Request):
-    """
-    Webhook endpoint with path-based authentication
-    """
-    # Verify the path key
-    if not API_KEY or path_key != API_KEY:
-        logger.warning(f"Invalid API key attempt with path key: {path_key}")
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid API Key in path",
-        )
-    
-    try:
-        # Get the webhook data
-        webhook_data = await request.json()
-        # Process webhook data and send email
-        return await process_webhook_data(webhook_data)
-    except Exception as e:
-        logger.error(f"Error processing webhook: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
-
+# Log-only webhook endpoints - moved before path-based authentication to avoid conflicts
 @app.post("/webhook/log-only")
 async def webhook_log_only(request: Request, token: Optional[str] = None, authorized: bool = Depends(verify_api_key)):
     """
@@ -479,7 +457,6 @@ async def webhook_log_only(request: Request, token: Optional[str] = None, author
         logger.error(f"Error processing log-only webhook: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Add a path-based version of the log-only endpoint
 @app.post("/webhook/log-only/{path_key}")
 async def webhook_log_only_path_auth(path_key: str, request: Request):
     """
@@ -512,6 +489,40 @@ async def webhook_log_only_path_auth(path_key: str, request: Request):
         }
     except Exception as e:
         logger.error(f"Error processing log-only webhook: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Path-based authentication - now comes AFTER specific routes to avoid conflicts
+@app.post("/webhook/{path_key}")
+async def webhook_path_auth(
+    path_key: str, 
+    request: Request,
+    # Exclude "log-only" from path parameters to avoid conflicts
+):
+    """
+    Webhook endpoint with path-based authentication
+    """
+    # Check if the path_key is "log-only" - should not get here due to routing order, but just in case
+    if path_key == "log-only":
+        raise HTTPException(
+            status_code=404,
+            detail="Invalid endpoint - use /webhook/log-only for log-only requests",
+        )
+    
+    # Verify the path key
+    if not API_KEY or path_key != API_KEY:
+        logger.warning(f"Invalid API key attempt with path key: {path_key}")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API Key in path",
+        )
+    
+    try:
+        # Get the webhook data
+        webhook_data = await request.json()
+        # Process webhook data and send email
+        return await process_webhook_data(webhook_data)
+    except Exception as e:
+        logger.error(f"Error processing webhook: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 # Add an index route for easy health check
