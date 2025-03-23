@@ -50,7 +50,7 @@ chmod +x setup.sh
 ./setup.sh
 ```
 3. The script will:
-   - Create a virtual environment in the `venv` directory
+   - Create a virtual environment in the `.venv` directory
    - Install all required dependencies
    - Create a `.env` file from `.env.example` if it doesn't exist
 
@@ -65,7 +65,7 @@ chmod +x setup.sh
 setup.bat
 ```
 3. The script will:
-   - Create a virtual environment in the `venv` directory
+   - Create a virtual environment in the `.venv` directory
    - Install all required dependencies
    - Create a `.env` file from `.env.example` if it doesn't exist
 
@@ -122,8 +122,8 @@ run.bat
 ### Manual start:
 
 1. Activate the virtual environment (if not already activated):
-   - Linux/Mac: `source venv/bin/activate`
-   - Windows: `venv\Scripts\activate`
+   - Linux/Mac: `source .venv/bin/activate`
+   - Windows: `.venv\Scripts\activate`
 
 2. Start the service:
 ```

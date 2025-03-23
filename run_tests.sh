@@ -2,7 +2,7 @@
 # Script to run tests for Freqtrade Webhook Email Notifier
 
 # Activate virtual environment
-source venv/bin/activate
+source .venv/bin/activate
 
 # Run unit tests
 echo "Running unit tests..."

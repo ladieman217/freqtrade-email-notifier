@@ -47,7 +47,7 @@ chmod +x setup.sh
 ./setup.sh
 ```
 3. 此脚本将：
-   - 在 `venv` 目录中创建虚拟环境
+   - 在 `.venv` 目录中创建虚拟环境
    - 安装所有必需的依赖
    - 如果不存在，从 `.env.example` 创建 `.env` 文件
 
@@ -62,7 +62,7 @@ chmod +x setup.sh
 setup.bat
 ```
 3. 此脚本将：
-   - 在 `venv` 目录中创建虚拟环境
+   - 在 `.venv` 目录中创建虚拟环境
    - 安装所有必需的依赖
    - 如果不存在，从 `.env.example` 创建 `.env` 文件
 
@@ -119,8 +119,8 @@ run.bat
 ### 手动启动：
 
 1. 激活虚拟环境（如果尚未激活）：
-   - Linux/Mac: `source venv/bin/activate`
-   - Windows: `venv\Scripts\activate`
+   - Linux/Mac: `source .venv/bin/activate`
+   - Windows: `.venv\Scripts\activate`
 
 2. 启动服务：
 ```
